@@ -1,7 +1,9 @@
 import sqlite3
+import os
 
 def conectar():
-    return sqlite3.connect("data/crm.db")
+    ruta_db = os.path.join(os.path.dirname(__file__), '..', 'data', 'crm.db')
+    return sqlite3.connect(ruta_db)
 
 def crear_tablas():
     conn = conectar()
