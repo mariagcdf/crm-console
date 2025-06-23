@@ -1,7 +1,8 @@
 from core import registrar_usuario, buscar_usuario, crear_factura, mostrar_usuarios, mostrar_facturas_usuario, resumen_financiero
 
 def mostrar_menu():
-    while True:
+    continuar = True
+    while continuar:
         print("\n=== SISTEMA CRM ===")
         print("1. Registrar nuevo usuario")
         print("2. Buscar usuario")
@@ -10,7 +11,6 @@ def mostrar_menu():
         print("5. Mostrar facturas de un usuario")
         print("6. Resumen financiero por usuario")
         print("7. Salir")
-
         opcion = input("Seleccione una opción: ")
 
         if opcion == "1":
@@ -26,7 +26,11 @@ def mostrar_menu():
         elif opcion == "6":
             resumen_financiero()
         elif opcion == "7":
-            print("Saliendo...")
             break
         else:
-            print("Opción inválida.")
+            print("Opción no válida.")
+            continue
+
+        seguir = input("\n¿Desea realizar otra operación? (s/n): ").lower()
+        if seguir != 's':
+            continuar = False
