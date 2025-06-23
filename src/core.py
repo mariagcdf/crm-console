@@ -3,30 +3,46 @@ from datetime import date
 import uuid
 
 def registrar_usuario():
+    import re
+
+def registrar_usuario():
     print("=== REGISTRO DE USUARIO ===")
-    nombre = input("Nombre: ")
-    apellidos = input("Apellidos: ")
-    email = input("Email: ")
-    telefono = input("Teléfono (opcional): ")
-    direccion = input("Dirección (opcional): ")
+    
+    nombre = input("Nombre: ").strip()
+    if not nombre:
+        print("El nombre es obligatorio.")
+        return
+
+    apellidos = input("Apellidos: ").strip()
+    if not apellidos:
+        print("Al menos un apellido es obligatorio.")
+        return
+
+    email = input("Email: ").strip()
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        print("Email no válido.")
+        return
+
+    telefono = input("Teléfono (opcional): ").strip()
+    direccion = input("Dirección (opcional): ").strip()
 
     usuario_id = "USR" + uuid.uuid4().hex[:6].upper()
     fecha = date.today().isoformat()
 
     conn = conectar()
     cursor = conn.cursor()
-
     try:
         cursor.execute('''
-        INSERT INTO usuarios (id, nombre, apellidos, email, telefono, direccion, fecha_registro)
-        VALUES (?, ?, ?, ?, ?, ?, ?)''',
-        (usuario_id, nombre, apellidos, email, telefono, direccion, fecha))
+            INSERT INTO usuarios (id, nombre, apellidos, email, telefono, direccion, fecha_registro)
+            VALUES (?, ?, ?, ?, ?, ?, ?)''',
+            (usuario_id, nombre, apellidos, email, telefono, direccion, fecha))
         conn.commit()
         print(f"Usuario registrado correctamente. ID: {usuario_id}")
     except Exception as e:
         print("Error al registrar usuario:", e)
     finally:
         conn.close()
+
 
 def buscar_usuario():
     email = input("Introduce el email del usuario: ")
