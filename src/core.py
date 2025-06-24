@@ -1,9 +1,7 @@
 from db import conectar
 from datetime import date
 import uuid
-
-def registrar_usuario():
-    import re
+import re
 
 def registrar_usuario():
     print("=== REGISTRO DE USUARIO ===")
@@ -164,6 +162,61 @@ def resumen_financiero():
         print("Este usuario no tiene facturas registradas.")
     else:
         print(f"Total facturado: {total:.2f} €")
+
+    conn.close()
+
+def modificar_usuario():
+    print("=== MODIFICAR USUARIO ===")
+    email = input("Email actual del usuario: ")
+
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
+    usuario = cursor.fetchone()
+
+    if not usuario:
+        print("Usuario no encontrado.")
+        conn.close()
+        return
+
+    print(f"Usuario encontrado: {usuario[1]} {usuario[2]}")
+
+    nuevo_email = input("Nuevo email (dejar en blanco para no cambiar): ")
+    nuevo_telefono = input("Nuevo teléfono (dejar en blanco para no cambiar): ")
+    nueva_direccion = input("Nueva dirección (dejar en blanco para no cambiar): ")
+
+    if nuevo_email:
+        cursor.execute("UPDATE usuarios SET email = ? WHERE id = ?", (nuevo_email, usuario[0]))
+    if nuevo_telefono:
+        cursor.execute("UPDATE usuarios SET telefono = ? WHERE id = ?", (nuevo_telefono, usuario[0]))
+    if nueva_direccion:
+        cursor.execute("UPDATE usuarios SET direccion = ? WHERE id = ?", (nueva_direccion, usuario[0]))
+
+    conn.commit()
+    conn.close()
+    print("Usuario actualizado correctamente.")
+
+
+def eliminar_usuario():
+    print("=== ELIMINAR USUARIO ===")
+    email = input("Email del usuario a eliminar: ").strip()
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM usuarios WHERE email = ?", (email,))
+    resultado = cursor.fetchone()
+
+    if resultado:
+        usuario_id = resultado[0]
+
+        # Eliminar facturas asociadas primero por restricción de clave externa
+        cursor.execute("DELETE FROM facturas WHERE usuario_id = ?", (usuario_id,))
+        cursor.execute("DELETE FROM usuarios WHERE id = ?", (usuario_id,))
+        conn.commit()
+        print("Usuario y facturas eliminadas correctamente.")
+    else:
+        print("No se encontró ningún usuario con ese email.")
 
     conn.close()
 
