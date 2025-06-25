@@ -5,11 +5,16 @@ import re
 
 def registrar_usuario():
     print("=== REGISTRO DE USUARIO ===")
-    
-    nombre = input("Nombre: ").strip()
-    if not nombre:
+
+    while True:
+        nombre = input("Nombre: ").strip()
+        if nombre:  # nombre correcto → seguimos
+            break
         print("El nombre es obligatorio.")
-        return
+        reintentar = input("¿Quieres volver a introducir un nombre? (s/n): ").strip().lower()
+        if reintentar != "s":  # cualquier cosa distinta de “s” cancela el registro
+            print("Registro cancelado.")
+            return  # volvemos al menú principal
 
     apellidos = input("Apellidos: ").strip()
     if not apellidos:
@@ -30,10 +35,11 @@ def registrar_usuario():
     conn = conectar()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
-            INSERT INTO usuarios (id, nombre, apellidos, email, telefono, direccion, fecha_registro)
-            VALUES (?, ?, ?, ?, ?, ?, ?)''',
-            (usuario_id, nombre, apellidos, email, telefono, direccion, fecha))
+        cursor.execute(
+            "INSERT INTO usuarios (id, nombre, apellidos, email, telefono, direccion, fecha_registro) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (usuario_id, nombre, apellidos, email, telefono, direccion, fecha)
+        )
         conn.commit()
         print(f"Usuario registrado correctamente. ID: {usuario_id}")
     except Exception as e:
