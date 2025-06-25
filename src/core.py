@@ -43,7 +43,8 @@ def registrar_usuario():
 
 
 def buscar_usuario():
-    email = input("Introduce el email del usuario: ")
+    email = input("Introduce el email del usuario: ").strip()
+
     conn = conectar()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
@@ -51,7 +52,13 @@ def buscar_usuario():
     conn.close()
 
     if usuario:
-        print(f"ID: {usuario[0]}, Nombre: {usuario[1]} {usuario[2]}, Email: {usuario[3]}")
+        print("\n=== DATOS DEL USUARIO ===")
+        print(f"ID: {usuario[0]}")
+        print(f"Nombre: {usuario[1]} {usuario[2]}")
+        print(f"Email: {usuario[3]}")
+        print(f"Teléfono: {usuario[4] if usuario[4] else 'No disponible'}")
+        print(f"Dirección: {usuario[5] if usuario[5] else 'No disponible'}")
+        print(f"Fecha de registro: {usuario[6]}")
     else:
         print("Usuario no encontrado.")
 
@@ -68,7 +75,7 @@ def mostrar_usuarios():
 
 def crear_factura():
     print("=== CREAR FACTURA ===")
-    email = input("Email del usuario: ")
+    email = input("Email del usuario: ").strip()
 
     conn = conectar()
     cursor = conn.cursor()
@@ -82,32 +89,39 @@ def crear_factura():
         return
 
     usuario_id = fila[0]
-    concepto = input("Concepto: ")
+    descripcion = input("Descripción (concepto): ").strip()
     try:
-        cantidad = float(input("Cantidad (€): "))
+        monto = float(input("Monto (€): "))
     except ValueError:
-        print("Cantidad inválida.")
+        print("Monto inválido.")
         conn.close()
         return
 
-    factura_id = "FAC" + uuid.uuid4().hex[:6].upper()
-    fecha = date.today().isoformat()
+    estado = input("Estado [Pendiente/Pagada/Cancelada]: ").strip().capitalize()
+    if estado not in ['Pendiente', 'Pagada', 'Cancelada']:
+        print("Estado no válido.")
+        conn.close()
+        return
+
+    numero = "FAC" + uuid.uuid4().hex[:6].upper()
+    fecha_emision = date.today().isoformat()
 
     try:
         cursor.execute('''
-        INSERT INTO facturas (id, usuario_id, concepto, cantidad, fecha)
-        VALUES (?, ?, ?, ?, ?)''',
-        (factura_id, usuario_id, concepto, cantidad, fecha))
+            INSERT INTO facturas (numero, usuario_id, fecha_emision, descripcion, monto, estado)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (numero, usuario_id, fecha_emision, descripcion, monto, estado))
         conn.commit()
-        print(f"Factura creada correctamente. ID: {factura_id}")
+        print(f"Factura creada correctamente. Número: {numero}")
     except Exception as e:
         print("Error al crear factura:", e)
     finally:
         conn.close()
 
+
 def mostrar_facturas_usuario():
     print("=== FACTURAS DE UN USUARIO ===")
-    email = input("Introduce el email del usuario: ")
+    email = input("Introduce el email del usuario: ").strip()
 
     conn = conectar()
     cursor = conn.cursor()
@@ -122,24 +136,26 @@ def mostrar_facturas_usuario():
     usuario_id = fila[0]
 
     cursor.execute('''
-        SELECT concepto, cantidad, fecha
+        SELECT numero, fecha_emision, descripcion, monto, estado
         FROM facturas
         WHERE usuario_id = ?
-        ORDER BY fecha DESC
+        ORDER BY fecha_emision DESC
     ''', (usuario_id,))
     facturas = cursor.fetchall()
 
     if not facturas:
         print("Este usuario no tiene facturas registradas.")
     else:
-        for concepto, cantidad, fecha in facturas:
-            print(f"- {fecha}: {concepto} — {cantidad:.2f} €")
+        print("\nFACTURAS:")
+        for numero, fecha, descripcion, monto, estado in facturas:
+            print(f"- [{estado}] {fecha} | Nº {numero} | {descripcion} — {monto:.2f} €")
 
     conn.close()
 
+
 def resumen_financiero():
     print("=== RESUMEN FINANCIERO ===")
-    email = input("Introduce el email del usuario: ")
+    email = input("Introduce el email del usuario: ").strip()
 
     conn = conectar()
     cursor = conn.cursor()
@@ -152,18 +168,31 @@ def resumen_financiero():
         return
 
     usuario_id = fila[0]
-    cursor.execute('''
-        SELECT SUM(cantidad) FROM facturas
-        WHERE usuario_id = ?
-    ''', (usuario_id,))
-    total = cursor.fetchone()[0]
 
-    if total is None:
+    cursor.execute('''
+        SELECT estado, COUNT(*), SUM(monto)
+        FROM facturas
+        WHERE usuario_id = ?
+        GROUP BY estado
+    ''', (usuario_id,))
+    totales = cursor.fetchall()
+
+    if not totales:
         print("Este usuario no tiene facturas registradas.")
     else:
-        print(f"Total facturado: {total:.2f} €")
+        print("\nResumen por estado:")
+        total_pagado = 0
+        for estado, cantidad, monto in totales:
+            print(f"- {estado} ({cantidad}): {monto:.2f} €")
+            if estado == "Pagada":
+                total_pagado += monto
+
+        print(f"\nTotal general facturado (solo pagadas): {total_pagado:.2f} €")
 
     conn.close()
+
+
+
 
 def modificar_usuario():
     print("=== MODIFICAR USUARIO ===")
