@@ -78,16 +78,11 @@ python main.py
 
 ## 🧪 Script de creación de datos aleatorios
 
-El script crear_db.py genera usuarios y facturas aleatorias usando la librería Faker.  
-Este script no es parte del funcionamiento habitual del programa, sino una herramienta opcional para rellenar rápidamente la base de datos con contenido de prueba.
+# Paso 1: Crear la base de datos y su estructura
+python src/db.py
+
+# Paso 2: Rellenar la base de datos con datos de prueba
+python src/crear_db.py
+
 
 ---
-
-## 📜 Scripts disponibles
-
-- main.py: interfaz de menú e interacción con el usuario final.
-- db.py: contiene la función de conexión a la base de datos.
-- core.py: contiene toda la lógica funcional del programa (crear, modificar, buscar, etc.).
-- ui.py: define los menús y llamadas a funciones.
-- crear_db.py: genera automáticamente datos aleatorios para probar el sistema.
-"""
