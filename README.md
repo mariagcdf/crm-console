@@ -78,11 +78,16 @@ python main.py
 
 ## 🧪 Script de creación de datos aleatorios
 
-# Paso 1: Crear la base de datos y su estructura
+Paso 1: Crear la base de datos y su estructura
 python src/db.py
 
-# Paso 2: Rellenar la base de datos con datos de prueba
+Paso 2: Rellenar la base de datos con datos de prueba
 python src/crear_db.py
 
 
 ---
+
+## Diagrama de flujo general del CRM:
+
+![alt text](<Editor _ Mermaid Chart-2025-06-26-111132.png>)
+
