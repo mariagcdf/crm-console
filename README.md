@@ -89,5 +89,6 @@ python src/crear_db.py
 
 ## Diagrama de flujo general del CRM:
 
-![alt text](<Editor _ Mermaid Chart-2025-06-26-111132.png>)
+![alt text](<Editor _ Mermaid Chart-2025-06-26-113728.png>)
+
 
