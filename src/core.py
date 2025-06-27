@@ -2,6 +2,8 @@ from db import conectar
 from datetime import date
 import uuid
 import re
+import difflib
+
 
 def registrar_usuario():
     print("=== REGISTRO DE USUARIO ===")
@@ -49,24 +51,56 @@ def registrar_usuario():
 
 
 def buscar_usuario():
-    email = input("Introduce el email del usuario: ").strip()
+    entrada = input("Introduce el nombre del usuario: ").strip()
 
     conn = conectar()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
-    usuario = cursor.fetchone()
+    cursor.execute("SELECT nombre, apellidos, id, email FROM usuarios")
+    todos = cursor.fetchall()
+
+    nombres_completos = [f"{nombre} {apellidos}" for nombre, apellidos, *_ in todos]
+    coincidencias = difflib.get_close_matches(entrada, nombres_completos, n=3, cutoff=0.5)
+
+    if not coincidencias:
+        print("No se encontraron coincidencias.")
+        conn.close()
+        return
+
+    print("Coincidencias encontradas:")
+    opciones = []
+    for nombre_completo in coincidencias:
+        for nombre, apellidos, usuario_id, email in todos:
+            if f"{nombre} {apellidos}" == nombre_completo:
+                opciones.append((usuario_id, nombre, apellidos, email))
+                print(f"{len(opciones)}. {nombre} {apellidos} - {email}")
+                break
+
+    seleccion = input("Selecciona el número del usuario deseado: ").strip()
+    try:
+        seleccion = int(seleccion) - 1
+        usuario_id = opciones[seleccion][0]
+    except:
+        print("Selección inválida.")
+        conn.close()
+        return
+
+    cursor.execute('''
+        SELECT numero, fecha_emision, descripcion, monto, estado
+        FROM facturas
+        WHERE usuario_id = ?
+        ORDER BY fecha_emision DESC
+    ''', (usuario_id,))
+    facturas = cursor.fetchall()
     conn.close()
 
-    if usuario:
-        print("\n=== DATOS DEL USUARIO ===")
-        print(f"ID: {usuario[0]}")
-        print(f"Nombre: {usuario[1]} {usuario[2]}")
-        print(f"Email: {usuario[3]}")
-        print(f"Teléfono: {usuario[4] if usuario[4] else 'No disponible'}")
-        print(f"Dirección: {usuario[5] if usuario[5] else 'No disponible'}")
-        print(f"Fecha de registro: {usuario[6]}")
-    else:
-        print("Usuario no encontrado.")
+    if not facturas:
+        print("Este usuario no tiene facturas registradas.")
+        return
+
+    print("\nFACTURAS:")
+    for numero, fecha, descripcion, monto, estado in facturas:
+        print(f"- [{estado}] {fecha} | Nº {numero} | {descripcion} — {monto:.2f} €")
+
 
 def mostrar_usuarios():
     conn = conectar()
@@ -78,6 +112,7 @@ def mostrar_usuarios():
     print("=== LISTA DE USUARIOS ===")
     for u in usuarios:
         print(f"{u[0]} - {u[1]} {u[2]} - {u[3]}")
+
 
 def crear_factura():
     print("=== CREAR FACTURA ===")
@@ -198,8 +233,6 @@ def resumen_financiero():
     conn.close()
 
 
-
-
 def modificar_usuario():
     print("=== MODIFICAR USUARIO ===")
     email = input("Email actual del usuario: ")
@@ -230,6 +263,46 @@ def modificar_usuario():
     conn.commit()
     conn.close()
     print("Usuario actualizado correctamente.")
+
+
+def modificar_factura():
+    print("=== MODIFICAR FACTURA ===")
+    numero = input("Número de la factura (ej. FAC123ABC): ").strip().upper()
+
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM facturas WHERE numero = ?", (numero,))
+    factura = cursor.fetchone()
+
+    if not factura:
+        print("Factura no encontrada.")
+        conn.close()
+        return
+
+    print(f"Factura encontrada: {factura[2]} | {factura[3]} | {factura[4]} € | Estado: {factura[5]}")
+
+    nueva_descripcion = input("Nueva descripción (dejar en blanco para no cambiar): ").strip()
+    nuevo_monto_input = input("Nuevo monto (€) (dejar en blanco para no cambiar): ").strip()
+    nuevo_estado = input("Nuevo estado [Pendiente/Pagada/Cancelada] (dejar en blanco para no cambiar): ").strip().capitalize()
+
+    try:
+        if nueva_descripcion:
+            cursor.execute("UPDATE facturas SET descripcion = ? WHERE numero = ?", (nueva_descripcion, numero))
+        if nuevo_monto_input:
+            nuevo_monto = float(nuevo_monto_input)
+            cursor.execute("UPDATE facturas SET monto = ? WHERE numero = ?", (nuevo_monto, numero))
+        if nuevo_estado in ['Pendiente', 'Pagada', 'Cancelada']:
+            cursor.execute("UPDATE facturas SET estado = ? WHERE numero = ?", (nuevo_estado, numero))
+        elif nuevo_estado:
+            print("Estado no válido. No se ha cambiado.")
+    except Exception as e:
+        print("Error al modificar factura:", e)
+        conn.close()
+        return
+
+    conn.commit()
+    conn.close()
+    print("Factura actualizada correctamente.")
 
 
 def eliminar_usuario():
