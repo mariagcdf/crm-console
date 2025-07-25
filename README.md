@@ -7,21 +7,23 @@ Este es un proyecto de consola desarrollado en Python que simula un sistema bás
 
 ## 📁 Estructura del proyecto
 
+```plaintext
 crm-console/
 │
 ├── data/
-│   └── crm.db              # Base de datos SQLite
+│   └── crm.db                    # Base de datos SQLite
 │
 ├── src/
-│   ├── main.py             # Punto de entrada de la aplicación
-│   ├── ui.py               # Interfaz de usuario en consola
-│   ├── core.py             # Lógica principal del programa
-│   ├── db.py               # Funciones de conexión a la base de datos
-│   ├── crear_db.py         # Script para poblar la base de datos con datos aleatorios (Faker)
+│   ├── main.py                  # Punto de entrada de la aplicación
+│   ├── ui.py                    # Interfaz de usuario en consola
+│   ├── core.py                  # Lógica principal del programa
+│   ├── db.py                    # Funciones de conexión a la base de datos
+│   └── crear_db.py              # Script para poblar la base de datos con datos aleatorios (Faker)
 │
-├── README.md               # Este archivo
-└── requirements.txt        # Librerías necesarias
+├── README.md                    # Este archivo
+└── requirements.txt             # Librerías necesarias
 
+```
 ---
 
 ## 🔧 Requisitos
