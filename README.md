@@ -1,5 +1,4 @@
 
-readme = """
 # CRM Console App
 
 Este es un proyecto de consola desarrollado en Python que simula un sistema básico de gestión de relaciones con clientes (CRM). Permite registrar usuarios, generar facturas, consultar información y realizar análisis financieros. Está diseñado para usarse en local y utiliza SQLite como base de datos.
